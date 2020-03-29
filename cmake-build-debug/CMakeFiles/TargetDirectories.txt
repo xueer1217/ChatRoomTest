@@ -1,0 +1,3 @@
+/Users/haoxue/CLionProjects/ChatRoomTest/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/haoxue/CLionProjects/ChatRoomTest/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/haoxue/CLionProjects/ChatRoomTest/cmake-build-debug/CMakeFiles/ChatRoomTest.dir

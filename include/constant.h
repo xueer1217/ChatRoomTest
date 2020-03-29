@@ -1,0 +1,18 @@
+//
+// Created by 郝雪 on 2020/3/28.
+//
+
+#ifndef CHATROOMTEST_CONSTANT_H
+#define CHATROOMTEST_CONSTANT_H
+
+#define ERR -1
+#define OK 0
+#define  BACKLOG 15
+
+#define BUFFER_SIZE 1024
+#define LOGIN_SUCCESS "LOGIN SUCCESSFULLY"
+#define LOGIN_ERR "LOGIN FAIL"
+#define NO_USER "USER NOT EXISTS"
+#define NO_LOGIN "UNLOGIN ERROR"
+
+#endif //CHATROOMTEST_CONSTANT_H
