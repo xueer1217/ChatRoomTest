@@ -16,7 +16,6 @@
 #include "constant.h"
 
 
-
 using std::list;
 using std::string;
 using std::thread;
@@ -26,7 +25,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 using std::unique_lock;
-using std::stringstream ;
+using std::stringstream;
 using std::to_string;
 
 class client {
@@ -42,20 +41,23 @@ class client {
     mutex mx{};
 
 
+    int login(const string &username, const string &password);
 
-
-    int login(const string& username,const string& password);
     void receiveHandler();
+
     int setupConnect();
+
     void selecting();
+
     int receiveData(const SOCKET client, char *const buff, const int buffSize);
 
     int sendData(const string &data);
-    void push(string & buff);
+
+    void push(string &buff);
 
 public:
     client(const string &ip, const int &port) : server_ip(ip), server_port(port) {
-        thread t(& client::receiveHandler, this);
+        thread t(&client::receiveHandler, this);
         t.detach();
     };
 

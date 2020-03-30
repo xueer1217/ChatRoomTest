@@ -18,25 +18,22 @@ void client::receiveHandler() {
             string event = targetList.front();
             targetList.pop_front();
             stringstream ss{event};
-            const int buff_size = 256;
-            char buff[buff_size] = {};
 
+            string data = {};
             if (event[0] == '1') {
-                ss.getline(buff, buff_size, '|');
-                ss.getline(buff, buff_size, '|');
-                string msg{buff};
-                if (msg == LOGIN_SUCCESS) loginState = true;
-                cout << msg << endl;
+                getline(ss, data, '|');
+                getline(ss, data, '|');
+                if (data == LOGIN_SUCCESS) loginState = true;
+                cout << data << endl;
 
             } else if (event[0] == '2') {
-                ss.getline(buff, buff_size, '|');
-                ss.getline(buff, buff_size, '|');
-                string fromUser{buff};
-                ss.getline(buff, buff_size, '|');
-                string msg{buff};
+                getline(ss, data, '|');
+                getline(ss, data, '|');
+                string fromUser{data};
+                getline(ss, data, '|');
+                string msg{data};
                 cout << fromUser + ">>" + msg << endl;
             } else {
-
                 cout << "wrong msg:" + event << endl;
             }
 
@@ -97,10 +94,10 @@ int client::receiveData(const SOCKET client, char *const buff, const int buffSiz
 
 int client::sendData(const string &data) {
 
-    const char* d = data.data(); //data()与c_str()没有区别
-    if(send(sock,d,data.size(),0)==SOCKET_ERROR){
+    const char *d = data.data(); //data()与c_str()没有区别，使用c风格字符串的地方不可以用string代替
+    if (send(sock, d, data.size(), 0) == SOCKET_ERROR) {
         return ERR;
-    }else{
+    } else {
         return OK;
     }
 
@@ -131,7 +128,7 @@ void client::selecting() {
             break;
         }
         if (FD_ISSET(sock, &fdRead)) {
-            FD_CLR(sock, &fdRead);
+//            FD_CLR(sock, &fdRead); //不懂为什么要添加这一行 好像没有也行
             if (receiveData(sock, buff, sizeof(buff)) == ERR) {
                 cleanSocket(sock);
                 cleanWSA();
@@ -145,31 +142,32 @@ void client::selecting() {
 
 }
 
-int client::login(const string& username,const string& password){
+int client::login(const string &username, const string &password) {
 
 
-    char buff[BUFFER_SIZE]={};
-    string data = "1|"+username+"|"+password;
+    char buff[BUFFER_SIZE] = {};
+    string data = "1|" + username + "|" + password;
 //    cout<<data<<endl;
     sendData(data);
-    if(receiveData(sock, buff, BUFFER_SIZE)==ERR){}
-    else{
-        const int buff_size = 256;
-        char b[buff_size] = {};
-        stringstream ss{buff};
-        ss.getline(b,buff_size,'|');
-        ss.getline(b,buff_size,'|');
-        string data{b};
 
-        if(data==LOGIN_SUCCESS){
+    if (receiveData(sock, buff, BUFFER_SIZE) == OK) {
+
+        stringstream ss{buff};
+        string b = {};
+        getline(ss, b, '|');
+        getline(ss, b, '|');
+        string res{b};
+
+        if (res == LOGIN_SUCCESS) {
             loginState = true;
-            cout<<LOGIN_SUCCESS<<endl;
+            cout << LOGIN_SUCCESS << endl;
             return OK;
-        }else {
+        } else {
             cout << LOGIN_ERR << endl;
         }
     }
     return ERR;
+
 
 }
 
@@ -178,31 +176,25 @@ int client::start() {
     if (setupConnect() == OK) {
         string username = {};
         string password = {};
-        const int buff_size = 256;
-        char buff[buff_size] = {};
+        string buff = {};
         //这个线程发送信息
         while (true) {
 
             if (!loginState) {
                 cout << "请输入用户名:" << endl;
-                memset(buff, 0, buff_size);
-                cin.getline(buff, buff_size); //这里能不能用cin<<
+                getline(cin, buff); //stirng对象的读写操作
                 username = buff;
                 cout << "请输入密码:" << endl;
-                memset(buff, 0, buff_size);
-                cin.getline(buff, buff_size);
+                getline(cin, buff);
                 password = buff;
-                login(username,password);
+                login(username, password);
                 //起一个线程selecting
                 thread t{&client::selecting, this};
                 t.detach();
-            }else{
-
-                cout<<"loginState"+to_string(loginState)<<endl;
-                memset(buff,0,buff_size);
-                cin.getline(buff, buff_size); //直接写成username|msg形式
+            } else {
+                getline(cin, buff);//直接写成username|msg形式
                 string d{buff};
-                sendData("2|"+d);
+                sendData("2|" + d); //string对象和c风格字符串混用
             }
 
 

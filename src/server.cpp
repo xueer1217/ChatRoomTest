@@ -12,8 +12,6 @@ using std::cin;
 using std::endl;
 
 
-
-
 int server::setupConnect() {
 
     //初始化套接字库
@@ -61,7 +59,7 @@ int server::receiveData(const SOCKET client, char *const buff, const int buffSiz
         return ERR;
     } else {
         cout << "receive data size is " << len << endl;
-        cout<< buff <<endl;
+        cout << buff << endl;
         return OK;
     }
 
@@ -84,13 +82,14 @@ int server::login(const SOCKET &client, const string &username, const string &pa
     }
 
 }
-int server::sendData(const SOCKET &client, const string &data){
-    const char* d = data.data();
-    if(send(client,d,data.size(),0)==SOCKET_ERROR){
-        cout<<"send msg fail,socket is"+to_string(client)<<endl;
+
+int server::sendData(const SOCKET &client, const string &data) {
+    const char *d = data.data();
+    if (send(client, d, data.size(), 0) == SOCKET_ERROR) {
+        cout << "send msg fail,socket is" + to_string(client) << endl;
         return ERR;
-    }else{
-        cout<<"send msg:"+data+" for socket:"+to_string(client)<<endl;
+    } else {
+        cout << "send msg:" + data + " for socket:" + to_string(client) << endl;
         return OK;
     }
 }
@@ -147,7 +146,7 @@ void server::selecting() {
 
         if (FD_ISSET(serverSocket, &fdRead)) {
 
-            FD_CLR(serverSocket,&fdRead);
+//            FD_CLR(serverSocket,&fdRead);
             cout << "waiting for connection" << endl;
 
             sockaddr_in socketAddr = {0};
@@ -171,46 +170,41 @@ void server::selecting() {
                 if (receiveData(it, buff, BUFFER_SIZE) == ERR) { //如果fd为1，recv为<=0,则判断socket断开
                     kick(it);
                 } else {
-                    string data{buff};
-                    const int buff_size = 256;
-                    char b[buff_size] = {};
-                    stringstream ss{data};
-
+                    stringstream ss{buff};
+                    string data = {};
                     //Login req
-                    if (data[0] == '1') {
+                    if (buff[0] == '1') {
+                        getline(ss, data, '|');
+                        getline(ss, data, '|');
+                        string username{data};
+                        getline(ss, data, '|');
+                        string password{data};
+                        //login
+                        if (login(it, username, password) == OK) {
+                            sendData(it, "1|" LOGIN_SUCCESS);
+                        } else {
+                            sendData(it, "1|" LOGIN_ERR);
+                        }
+                        //send msg
+                    } else if (buff[0] == '2') {
 
-                            //login
-                            ss.getline(b, buff_size, '|');
-                            ss.getline(b, buff_size, '|');
-                            string username{b};
-                            ss.getline(b, buff_size, '|');
-                            string password{b};
-                            if(login(it,username,password)==OK){
-                                sendData(it,"1|" LOGIN_SUCCESS);
-                            }else{
-                                sendData(it,"1|" LOGIN_ERR);
-                            }
-                            //send msg
-                    }else if(data[0] == '2'){
-
-                        ss.getline(b, buff_size, '|');
-                        ss.getline(b, buff_size, '|');
-                        string toUsername{b};
-                        ss.getline(b, buff_size, '|');
-                        string msg{b};
-
-                        if(itUsername.empty()){
-                            sendData(it,"2|SERVER|" NO_LOGIN);
-                        }else{
+                        getline(ss, data, '|');
+                        getline(ss, data, '|');
+                        string toUsername{data};
+                        getline(ss, data, '|');
+                        string msg{data};
+                        if (itUsername.empty()) {
+                            sendData(it, "2|SERVER|" NO_LOGIN);
+                        } else {
                             auto to = usernameToSocket.find(toUsername);
-                            if(to != usernameToSocket.end()){
-                                sendData(to->second,"2|"+itUsername+"|"+msg);
-                            }else{
-                                sendData(it,"2|SERVER|" NO_USER);
+                            if (to != usernameToSocket.end()) {
+                                sendData(to->second, "2|" + itUsername + "|" + msg);
+                            } else {
+                                sendData(it, "2|SERVER|" NO_USER);
                             }
                         }
 
-                    }else{
+                    } else {
                         cout << "receive wrong msg" << endl;
                     }
 
@@ -218,9 +212,6 @@ void server::selecting() {
 
             }
         }
-
-        maxSocket = 0;
-
 
     }
 
